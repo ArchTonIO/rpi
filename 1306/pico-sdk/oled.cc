@@ -38,6 +38,8 @@ const uint8_t height = 64;
 #endif
 */
 
+volatile bool animation_timer_fired = false;
+
 static uint8_t height = 32;
 //const uint8_t SID = (height == 64) ? 0x3C : 0x3D; // different height displays have different addr
 const uint8_t SID = 0x3C ; // different height displays have different addr
@@ -207,6 +209,7 @@ void draw_pixel(int16_t x, int16_t y, int color)
 	}
 
 }
+	
 
 void drawBitmap(int16_t x, int16_t y, const uint8_t bitmap[], int16_t w,
 		int16_t h, uint16_t color) 
@@ -225,6 +228,33 @@ void drawBitmap(int16_t x, int16_t y, const uint8_t bitmap[], int16_t w,
 		}
 	}
 }
+
+int64_t animation_alarm_callback(alarm_id_t id, void *user_data) 
+{
+ 	animation_timer_fired = true;
+    return 0;
+}
+
+
+
+void drawAnimation(int16_t x, int16_t y, const uint8_t bitmaps_array[][1024], int16_t w,
+		int16_t h, uint16_t color, uint8_t frames_number, uint16_t duration_ms)
+
+{	
+	add_alarm_in_ms(duration_ms, animation_alarm_callback, NULL, false);
+	
+	while(!animation_timer_fired){	
+
+		for (uint16_t i = 0; i < frames_number; i++){
+				
+			drawBitmap(x,y, bitmaps_array[i], w, h, color);
+			show_scr();
+			fill_scr(0);
+			
+		}	
+	}		
+}	
+	
 
 void draw_letter_at(uint8_t x, uint8_t y, char c)
 {
@@ -278,4 +308,3 @@ void setCursory(int y)
 	const int pos = 8;
 	cursory = pos * y;
 }
-
